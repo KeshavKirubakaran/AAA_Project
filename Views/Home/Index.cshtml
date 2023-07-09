@@ -1,0 +1,277 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center" style="">
+    <h1 class="display-3">Dashboard</h1>
+</div>
+
+<div class="container" style="">
+    <br />
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-4" >
+            <div class="card text-left" style="height : 100%;">
+                <h3>
+                    Top-sold mobile model across all cities
+                </h3>
+            </div>
+        </div>
+    
+        <div class="col-sm-6">
+            <div class="card text-center" style="height : 100%;">
+                <div class="card-header"> 
+                    <h3 class="card-title"> @ViewBag.topSalesInfo.ModelName</h3>
+                </div>
+                <div class="card-body" >
+                    <h4 class="timer count-title count-number" data-to=" @ViewBag.topSalesInfo.TotalSales " data-speed="3000"></h4>
+                    <p class="card-text">Total sales amount - <b>₹.@ViewBag.topSalesInfo.TotalSalesAmount</b></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <br />
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-4">
+            <div class="card text-left" style="height : 100%;">
+                <h3>
+                    Least-sold mobile model across all cities
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="card text-center" style="height : 100%;">
+                <div class="card-header"> 
+                    <h3 class="card-title"> @ViewBag.leastSalesInfo.ModelName</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="timer count-title count-number" data-to=" @ViewBag.leastSalesInfo.TotalSales " data-speed="3000"></h4>
+                    <p class="card-text">Total sales amount - <b>₹.@ViewBag.leastSalesInfo.TotalSalesAmount</b></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <br />
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-4">
+            <div class="card text-left" style="height : 100%;">
+                <h3>
+                    Top sold model city-wise with the total sales amount
+                </h3>
+            </div>
+        </div>
+        
+        <div class="col-sm-6">
+            <div class="card text-center" style="height : 100%;">
+                <table class="table" style="height : 100%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Cities</th>
+                        <th scope="col">Top Sold Mobile model</th>
+                        <th scope="col">No. of mobiles sold</th>
+                        <th scope="col">Total sales amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var i in ViewBag.topSoldModelsCitywise)
+                    {
+                    <tr>
+                        <th scope="row">@i.City</th>
+                            <td>@i.ModelName</td>
+                        <td>@i.TotalSales</td>
+                        <td>@i.TotalSalesAmount</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-sm-1"></div>
+     </div>
+    <br />
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-4">
+            <div class="card text-left" style="height : 100%;">
+                <h3>
+                    Total sales amount across all models and all cities (₹.)
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="card text-center" style="height : 100%;">
+                <div class="card-header" style="height : 100%;">
+                    <h3 class="display-6 timer count-title count-number" data-to=" @ViewBag.totalSalesAmount " data-speed="3000"></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <br /><br />
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-10">
+            <h3 class="display-6 text-center">
+                GroupedBarChart - Total Sales amount of each product across the cities
+            </h3>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <div id="chart-section"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        google.charts.load('current', {
+            packages: ['corechart', 'bar']
+        });
+        google.charts.setOnLoadCallback(LoadData);
+
+        function LoadData() {
+            $.ajax({
+
+                url: 'Home/SalesChartData',
+                dataType: "json",
+                type: "GET",
+                error: function (xhr, status, error) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    toastr.error(err.message);
+                },
+                success: function (data) {
+                    SalesChart(data);
+                    return false;
+                }
+            });
+            return false;
+        }
+
+        function SalesChart(data) {
+            var dataArray = [
+                ['City', 'VA1', 'VA2', 'VA3']
+            ];
+            $.each(data, function (i, item) {
+                dataArray.push([item.city, parseInt(item.vA1), parseInt(item.vA2), parseInt(item.vA3)]);
+            });
+            var data = google.visualization.arrayToDataTable(dataArray);
+            var options = {
+                chartArea: {
+                    width: '80%'
+                },
+            colors: ['#98FB98', '#32CD32', '#228B22'],
+                hAxis: {
+                    title: 'City',
+                    minValue: 0
+                },
+                vAxis: {
+                    title: 'No. of mobile models sold'
+                }
+            };
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart-section'));
+
+            chart.draw(data, options);
+            return false;
+        }
+
+    </script>
+</div>
+
+
+<script type="text/javascript">
+
+    (function ($) {
+        $.fn.countTo = function (options) {
+            optionsoptions = options || {};
+            return $(this).each(function () {
+                var settings = $.extend(
+                    {},
+                    $.fn.countTo.defaults,
+                    {
+                        from: $(this).data("from"),
+                        to: $(this).data("to"),
+                        speed: $(this).data("speed"),
+                        refreshInterval: $(this).data("refresh-interval"),
+                        decimals: $(this).data("decimals")
+                    },
+                    options
+                );
+                var loops = Math.ceil(settings.speed / settings.refreshInterval),
+                    increment = (settings.to - settings.from) / loops;
+                var self = this,
+                    $self = $(this),
+                    loopCount = 0,
+                    value = settings.from,
+                    data = $self.data("countTo") || {};
+                $self.data("countTo", data);
+                if (data.interval) {
+                    clearInterval(data.interval);
+                }
+                data.interval = setInterval(updateTimer, settings.refreshInterval);
+                render(value);
+                function updateTimer() {
+                    value += increment;
+                    loopCount++;
+                    render(value);
+                    if (typeof settings.onUpdate == "function") {
+                        settings.onUpdate.call(self, value);
+                    }
+                    if (loopCount >= loops) {
+                        $self.removeData("countTo");
+                        clearInterval(data.interval);
+                        value = settings.to;
+                        if (typeof settings.onComplete == "function") {
+                            settings.onComplete.call(self, value);
+                        }
+                    }
+                }
+                function render(value) {
+                    var formattedValue = settings.formatter.call(self, value, settings);
+                    $self.html(formattedValue);
+                }
+            });
+        };
+        $.fn.countTo.defaults = {
+            from: 0,
+            to: 0,
+            speed: 1000,
+            refreshInterval: 100,
+            decimals: 0,
+            formatter: formatter,
+            onUpdate: null,
+            onComplete: null
+        };
+        function formatter(value, settings) {
+            return value.toFixed(settings.decimals);
+        }
+    })(jQuery);
+    jQuery(function ($) {
+        $(".count-number").data("countToOptions", {
+            formatter: function (value, options) {
+                return value
+                    .toFixed(options.decimals)
+                    .replace(/\B(?=(?:\d{3})+(?!\d))/g, ",");
+            }
+        });
+        $(".timer").each(count);
+        function count(options) {
+            var $this = $(this);
+            options = $.extend({}, options || {}, $this.data("countToOptions") || {});
+            $this.countTo(options);
+        }
+    });
+
+</script>
+
+
